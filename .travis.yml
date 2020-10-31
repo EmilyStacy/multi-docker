@@ -1,0 +1,22 @@
+language: generic
+sudo: reqquire
+service:
+  - docker
+before_install:
+  -docker build -t emily/react-test -f ./client/Dockerfile.dev ./client
+script:
+  - docker run -e CI=true emilu/react-test npm test 
+
+after_success:
+  - docker build -t emily/multi-client ./client
+  - docker build -t emily/multi-nginx ./nginx
+  - docker build -t emily/multi-server ./server
+  - docker build -t emily/multi-worker ./worker
+
+  #Log in to the docker CLI
+  -echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #Take images and push to docker hub
+  - docker push emily/multi-client
+  - docker push emily/multi-nginx
+  - docker push emily/multi-server
+  - docker push emily/multi-worker
